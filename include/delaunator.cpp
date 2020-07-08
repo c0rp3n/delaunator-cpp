@@ -55,6 +55,8 @@ inline dfloat circumradius(const typename Config::point_type& p1,
                            const typename Config::point_type& p3)
 {
     using point_type = typename Config::point_type;
+    auto get_x = Config::get_x;
+    auto get_y = Config::get_y;
 
     point_type d = Config::get_vector(p1, p2);
     point_type e = Config::get_vector(p1, p3);
@@ -63,8 +65,8 @@ inline dfloat circumradius(const typename Config::point_type& p1,
     const dfloat cl = Config::get_magnitude2(e);
     const dfloat det = Config::get_determinant(d, e);
 
-    point_type radius((e.y() * bl - d.y() * cl) * static_cast<dfloat>(0.5) / det,
-                      (d.x() * cl - e.x() * bl) * static_cast<dfloat>(0.5) / det);
+    point_type radius((get_y(e) * bl - get_y(d) * cl) * static_cast<dfloat>(0.5) / det,
+                      (get_x(d) * cl - get_x(e) * bl) * static_cast<dfloat>(0.5) / det);
 
     if ((bl > 0.0 || bl < 0.0) &&
         (cl > 0.0 || cl < 0.0) &&
@@ -198,13 +200,15 @@ inline typename Config::point_type circumcenter(
     const typename Config::point_type& c)
 {
     using point_type = typename Config::point_type;
+    auto get_x = Config::get_x;
+    auto get_y = Config::get_y;
 
-    const dfloat ax = a.x();
-    const dfloat ay = a.y();
-    const dfloat bx = b.x();
-    const dfloat by = b.y();
-    const dfloat cx = c.x();
-    const dfloat cy = c.y();
+    const dfloat ax = get_x(a);
+    const dfloat ay = get_y(a);
+    const dfloat bx = get_x(b);
+    const dfloat by = get_y(b);
+    const dfloat cx = get_x(c);
+    const dfloat cy = get_y(c);
 
     const dfloat dx = bx - ax;
     const dfloat dy = by - ay;
@@ -235,14 +239,17 @@ inline bool in_circle(
     const typename Config::point_type& c,
     const typename Config::point_type& p)
 {
-    const dfloat ax = a.x();
-    const dfloat ay = a.y();
-    const dfloat bx = b.x();
-    const dfloat by = b.y();
-    const dfloat cx = c.x();
-    const dfloat cy = c.y();
-    const dfloat px = p.x();
-    const dfloat py = p.y();
+    auto get_x = Config::get_x;
+    auto get_y = Config::get_y;
+
+    const dfloat ax = get_x(a);
+    const dfloat ay = get_y(a);
+    const dfloat bx = get_x(b);
+    const dfloat by = get_y(b);
+    const dfloat cx = get_x(c);
+    const dfloat cy = get_y(c);
+    const dfloat px = get_x(p);
+    const dfloat py = get_y(p);
 
     const dfloat dx = ax - px;
     const dfloat dy = ay - py;
@@ -272,8 +279,11 @@ DELAUNATOR_MTEMPLATE
 inline bool check_pts_equal(
     const typename Config::point_type p1,
     const typename Config::point_type p2) {
-    return std::fabs(p1.x() - p2.x()) <= EPSILON &&
-           std::fabs(p1.y() - p2.y()) <= EPSILON;
+    auto get_x = Config::get_x;
+    auto get_y = Config::get_y;
+
+    return std::fabs(get_x(p1) - get_x(p2)) <= EPSILON &&
+           std::fabs(get_y(p1) - get_y(p2)) <= EPSILON;
 }
 
 #ifndef DELAUNATOR_CONFIGURABLE
@@ -299,6 +309,9 @@ DELAUNATOR_CLASS::Delaunator(std::vector<dfloat> const& in_coords)
 DELAUNATOR_MTEMPLATE
 void DELAUNATOR_CLASS::triangulate()
 {
+    auto get_x = Config::get_x;
+    auto get_y = Config::get_y;
+
     std::size_t n = m_points.size();
 
     std::vector<std::size_t> ids(n);
@@ -310,10 +323,10 @@ void DELAUNATOR_CLASS::triangulate()
     dfloat min_y = (std::numeric_limits<dfloat>::max)();
     for (const point_type& p : m_points)
     {
-        min_x = std::min(p.x(), min_x);
-        min_y = std::min(p.y(), min_y);
-        max_x = std::max(p.x(), max_x);
-        max_y = std::max(p.y(), max_y);
+        min_x = std::min(get_x(p), min_x);
+        min_y = std::min(get_y(p), min_y);
+        max_x = std::max(get_x(p), max_x);
+        max_y = std::max(get_y(p), max_y);
     }
     dfloat width = max_x - min_x;
     dfloat height = max_y - min_y;
@@ -380,12 +393,12 @@ void DELAUNATOR_CLASS::triangulate()
     const point_type& i1p = m_points[i1];
     const point_type& i2p = m_points[i2];
 
-    dfloat i0x = p0.x();
-    dfloat i0y = p0.y();
-    dfloat i1x = m_points[i1].x();
-    dfloat i1y = m_points[i1].y();
-    dfloat i2x = m_points[i2].x();
-    dfloat i2y = m_points[i2].y();
+    dfloat i0x = get_x(p0);
+    dfloat i0y = get_y(p0);
+    dfloat i1x = get_x(m_points[i1]);
+    dfloat i1y = get_y(m_points[i1]);
+    dfloat i2x = get_x(m_points[i2]);
+    dfloat i2y = get_y(m_points[i2]);
 
     m_center = CIRCUMCENTER(i0p, i1p, i2p);
 
@@ -564,14 +577,17 @@ void DELAUNATOR_CLASS::triangulate()
 
 DELAUNATOR_MTEMPLATE
 dfloat DELAUNATOR_CLASS::get_hull_area() {
+    auto get_x = Config::get_x;
+    auto get_y = Config::get_y;
+
     std::vector<dfloat> hull_area;
     size_t e = hull_start;
     size_t cnt = 1;
     do {
         const point_type& curr = m_points[e];
         const point_type& prev = m_points[hull_prev[e]];
-        hull_area.push_back((curr.x() - prev.x()) *
-                            (curr.y() + prev.y()));
+        hull_area.push_back((get_x(curr) - get_x(prev)) *
+                            (get_y(curr) + get_y(prev)));
 
         cnt++;
         e = hull_next[e];
@@ -581,6 +597,9 @@ dfloat DELAUNATOR_CLASS::get_hull_area() {
 
 DELAUNATOR_MTEMPLATE
 dfloat DELAUNATOR_CLASS::get_triangle_area() {
+    auto get_x = Config::get_x;
+    auto get_y = Config::get_y;
+
     std::vector<dfloat> vals;
     for (size_t i = 0; i < triangles.size(); i += 3)
     {
@@ -588,12 +607,12 @@ dfloat DELAUNATOR_CLASS::get_triangle_area() {
         const point_type& b = m_points[triangles[i + 1]];
         const point_type& c = m_points[triangles[i + 2]];
 
-        const dfloat ax = a.x();
-        const dfloat ay = a.y();
-        const dfloat bx = b.x();
-        const dfloat by = b.y();
-        const dfloat cx = c.x();
-        const dfloat cy = c.y();
+        const dfloat ax = get_x(a);
+        const dfloat ay = get_y(a);
+        const dfloat bx = get_x(b);
+        const dfloat by = get_y(b);
+        const dfloat cx = get_x(c);
+        const dfloat cy = get_y(c);
 
         dfloat val = std::fabs((by - ay) * (cx - bx) - (bx - ax) * (cy - by));
         vals.push_back(val);
@@ -699,10 +718,13 @@ std::size_t DELAUNATOR_CLASS::legalize(std::size_t a) {
 
 DELAUNATOR_MTEMPLATE
 std::size_t DELAUNATOR_CLASS::hash_key(const point_type& p) const {
-    const dfloat x = p.x();
-    const dfloat y = p.y();
-    const dfloat dx = x - m_center.x();
-    const dfloat dy = y - m_center.y();
+    auto get_x = Config::get_x;
+    auto get_y = Config::get_y;
+
+    const dfloat x = get_x(p);
+    const dfloat y = get_y(p);
+    const dfloat dx = x - get_x(m_center);
+    const dfloat dy = y - get_y(m_center);
     return fast_mod(
         static_cast<std::size_t>(std::llround(std::floor(pseudo_angle(dx, dy) * static_cast<dfloat>(m_hash_size)))),
         m_hash_size);
