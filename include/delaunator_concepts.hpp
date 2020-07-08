@@ -40,6 +40,14 @@ requires delaunator::PointConfigConcept<Config>
                 PointConfig::get_dist2(p0, p1);
                 PointConfig::get_equal(p0, p1, 1.0);
             };
+
+            template <typename T, typename U>
+            concept Container = requires(T a)
+            {
+                std::data(a);
+                std::size(a);
+                std::same_as<typename T::value_type, U>;
+            };
         }
 #   endif // DELAUNATOR_HAS_CONCEPTS
 #else

@@ -12,13 +12,11 @@
 #include <tuple>
 #include <vector>
 
-namespace delaunator {
 #ifndef DELAUNATOR_CONFIGURABLE
-#   define DELAUNATOR_CLASS Delaunator
     typedef delaunator::DefaultPointConfig Config;
-#else
-#   define DELAUNATOR_CLASS Delaunator<Config>
 #endif
+
+namespace delaunator {
 
 //@see https://stackoverflow.com/questions/33333363/built-in-mod-vs-custom-mod-function-improve-the-performance-of-modulus-op/33333636#33333636
 inline size_t fast_mod(const size_t i, const size_t c) {
@@ -39,6 +37,7 @@ inline dfloat sum(const std::vector<dfloat>& x) {
     return sum + err;
 }
 
+/*
 inline dfloat dist(
     const dfloat ax,
     const dfloat ay,
@@ -48,6 +47,7 @@ inline dfloat dist(
     const dfloat dy = ay - by;
     return dx * dx + dy * dy;
 }
+*/
 
 DELAUNATOR_TEMPLATE
 inline dfloat circumradius(const typename Config::point_type& p1,
@@ -73,6 +73,13 @@ inline dfloat circumradius(const typename Config::point_type& p1,
     return (std::numeric_limits<dfloat>::max)();
 }
 
+#ifndef DELAUNATOR_CONFIGURABLE
+#   define CIRCUMRADIUS circumradius
+#else
+#   define CIRCUMRADIUS circumradius<Config>
+#endif
+
+/*
 inline dfloat circumradius(
     const dfloat ax,
     const dfloat ay,
@@ -98,7 +105,9 @@ inline dfloat circumradius(
         return (std::numeric_limits<dfloat>::max)();
     }
 }
+*/
 
+/*
 DELAUNATOR_TEMPLATE
 inline bool clockwise(const typename Config::point_type& p0,
                       const typename Config::point_type& p1,
@@ -120,7 +129,15 @@ inline bool clockwise(const typename Config::point_type& p0,
         return false;
     return det < 0;
 }
+*/
 
+#ifndef DELAUNATOR_CONFIGURABLE
+#define CLOCKWISE clockwise
+#else
+#define CLOCKWISE clockwise<Config>
+#endif
+
+/*
 DELAUNATOR_TEMPLATE
 inline bool clockwise(dfloat px, dfloat py, dfloat qx, dfloat qy,
     dfloat rx, dfloat ry)
@@ -132,6 +149,7 @@ inline bool clockwise(dfloat px, dfloat py, dfloat qx, dfloat qy,
     point_type p2(rx, ry);
     return clockwise(p0, p1, p2);
 }
+*/
 
 DELAUNATOR_TEMPLATE
 inline bool counterclockwise(const typename Config::point_type& p0,
@@ -153,6 +171,13 @@ inline bool counterclockwise(const typename Config::point_type& p0,
     return det > 0;
 }
 
+#ifndef DELAUNATOR_CONFIGURABLE
+#define COUNTERCLOCKWISE counterclockwise
+#else
+#define COUNTERCLOCKWISE counterclockwise<Config>
+#endif
+
+/*
 DELAUNATOR_TEMPLATE
 inline bool counterclockwise(dfloat px, dfloat py, dfloat qx, dfloat qy,
     dfloat rx, dfloat ry)
@@ -164,16 +189,22 @@ inline bool counterclockwise(dfloat px, dfloat py, dfloat qx, dfloat qy,
     point_type p2(rx, ry);
     return counterclockwise(p0, p1, p2);
 }
+*/
 
 DELAUNATOR_TEMPLATE
 inline typename Config::point_type circumcenter(
-    const dfloat ax,
-    const dfloat ay,
-    const dfloat bx,
-    const dfloat by,
-    const dfloat cx,
-    const dfloat cy) {
+    const typename Config::point_type& a,
+    const typename Config::point_type& b,
+    const typename Config::point_type& c)
+{
     using point_type = typename Config::point_type;
+
+    const dfloat ax = a.x();
+    const dfloat ay = a.y();
+    const dfloat bx = b.x();
+    const dfloat by = b.y();
+    const dfloat cx = c.x();
+    const dfloat cy = c.y();
 
     const dfloat dx = bx - ax;
     const dfloat dy = by - ay;
@@ -191,15 +222,28 @@ inline typename Config::point_type circumcenter(
     return point_type(x, y);
 }
 
+#ifndef DELAUNATOR_CONFIGURABLE
+#define CIRCUMCENTER circumcenter
+#else
+#define CIRCUMCENTER circumcenter<Config>
+#endif
+
+DELAUNATOR_TEMPLATE
 inline bool in_circle(
-    const dfloat ax,
-    const dfloat ay,
-    const dfloat bx,
-    const dfloat by,
-    const dfloat cx,
-    const dfloat cy,
-    const dfloat px,
-    const dfloat py) {
+    const typename Config::point_type& a,
+    const typename Config::point_type& b,
+    const typename Config::point_type& c,
+    const typename Config::point_type& p)
+{
+    const dfloat ax = a.x();
+    const dfloat ay = a.y();
+    const dfloat bx = b.x();
+    const dfloat by = b.y();
+    const dfloat cx = c.x();
+    const dfloat cy = c.y();
+    const dfloat px = p.x();
+    const dfloat py = p.y();
+
     const dfloat dx = ax - px;
     const dfloat dy = ay - py;
     const dfloat ex = bx - px;
@@ -216,12 +260,27 @@ inline bool in_circle(
             ap * (ex * fy - ey * fx)) < static_cast<dfloat>(0.0);
 }
 
+#ifndef DELAUNATOR_CONFIGURABLE
+#define IN_CIRCLE in_circle
+#else
+#define IN_CIRCLE in_circle<Config>
+#endif
+
 constexpr dfloat EPSILON = std::numeric_limits<dfloat>::epsilon();
 
-inline bool check_pts_equal(dfloat x1, dfloat y1, dfloat x2, dfloat y2) {
-    return std::fabs(x1 - x2) <= EPSILON &&
-           std::fabs(y1 - y2) <= EPSILON;
+DELAUNATOR_MTEMPLATE
+inline bool check_pts_equal(
+    const typename Config::point_type p1,
+    const typename Config::point_type p2) {
+    return std::fabs(p1.x() - p2.x()) <= EPSILON &&
+           std::fabs(p1.y() - p2.y()) <= EPSILON;
 }
+
+#ifndef DELAUNATOR_CONFIGURABLE
+#define CHECK_PTS_EQUAL check_pts_equal
+#else
+#define CHECK_PTS_EQUAL check_pts_equal<Config>
+#endif
 
 // monotonically increases with real angle, but doesn't need expensive trigonometry
 inline dfloat pseudo_angle(const dfloat dx, const dfloat dy) {
@@ -233,9 +292,14 @@ inline dfloat pseudo_angle(const dfloat dx, const dfloat dy) {
 
 DELAUNATOR_MTEMPLATE
 DELAUNATOR_CLASS::Delaunator(std::vector<dfloat> const& in_coords)
-    : coords(in_coords), m_points(in_coords)
+    : m_points(in_coords) {
+    this->triangulate();
+}
+
+DELAUNATOR_MTEMPLATE
+void DELAUNATOR_CLASS::triangulate()
 {
-    std::size_t n = coords.size() >> 1;
+    std::size_t n = m_points.size();
 
     std::vector<std::size_t> ids(n);
     std::iota(ids.begin(), ids.end(), 0);
@@ -296,7 +360,7 @@ DELAUNATOR_CLASS::Delaunator(std::vector<dfloat> const& in_coords)
     for (std::size_t i = 0; i < n; i++) {
         if (i == i0 || i == i1) continue;
 
-        const dfloat r = circumradius(p0, p1, m_points[i]);
+        const dfloat r = CIRCUMRADIUS(p0, p1, m_points[i]);
         if (r < min_radius) {
             i2 = i;
             min_radius = r;
@@ -309,8 +373,12 @@ DELAUNATOR_CLASS::Delaunator(std::vector<dfloat> const& in_coords)
 
     const point_type& p2 = m_points[i2];
 
-    if (counterclockwise(p0, p1, p2))
+    if (COUNTERCLOCKWISE(p0, p1, p2))
         std::swap(i1, i2);
+
+    const point_type& i0p = p0;
+    const point_type& i1p = m_points[i1];
+    const point_type& i2p = m_points[i2];
 
     dfloat i0x = p0.x();
     dfloat i0y = p0.y();
@@ -319,7 +387,7 @@ DELAUNATOR_CLASS::Delaunator(std::vector<dfloat> const& in_coords)
     dfloat i2x = m_points[i2].x();
     dfloat i2y = m_points[i2].y();
 
-    m_center = circumcenter(i0x, i0y, i1x, i1y, i2x, i2y);
+    m_center = CIRCUMCENTER(i0p, i1p, i2p);
 
     // Calculate the distances from the center once to avoid having to
     // calculate for each compare.  This used to be done in the comparator,
@@ -329,7 +397,7 @@ DELAUNATOR_CLASS::Delaunator(std::vector<dfloat> const& in_coords)
     std::vector<dfloat> dists;
     dists.reserve(m_points.size());
     for (const point_type& p : m_points)
-        dists.push_back(dist(p.x(), p.y(), m_center.x(), m_center.y()));
+        dists.push_back(Config::get_dist2(p, m_center));
 
     // sort the points by distance from the seed triangle circumcenter
     std::sort(ids.begin(), ids.end(),
@@ -358,9 +426,9 @@ DELAUNATOR_CLASS::Delaunator(std::vector<dfloat> const& in_coords)
     hull_tri[i1] = 1;
     hull_tri[i2] = 2;
 
-    m_hash[hash_key(i0x, i0y)] = i0;
-    m_hash[hash_key(i1x, i1y)] = i1;
-    m_hash[hash_key(i2x, i2y)] = i2;
+    m_hash[hash_key(i0p)] = i0;
+    m_hash[hash_key(i1p)] = i1;
+    m_hash[hash_key(i2p)] = i2;
 
     // ABELL - Why are we doing this is n < 3?  There is no triangulation if
     //  there is no triangle.
@@ -369,31 +437,29 @@ DELAUNATOR_CLASS::Delaunator(std::vector<dfloat> const& in_coords)
     triangles.reserve(max_triangles * 3);
     halfedges.reserve(max_triangles * 3);
     add_triangle(i0, i1, i2, INVALID_INDEX, INVALID_INDEX, INVALID_INDEX);
-    dfloat xp = std::numeric_limits<dfloat>::quiet_NaN();
-    dfloat yp = std::numeric_limits<dfloat>::quiet_NaN();
+    point_type last(std::numeric_limits<dfloat>::quiet_NaN(),
+                    std::numeric_limits<dfloat>::quiet_NaN());
 
     // Go through points based on distance from the center.
     for (std::size_t k = 0; k < n; k++) {
         const std::size_t i = ids[k];
-        const dfloat x = coords[2 * i];
-        const dfloat y = coords[2 * i + 1];
+        const point_type& p = m_points[i];
 
         // skip near-duplicate points
-        if (k > 0 && check_pts_equal(x, y, xp, yp))
+        if (k > 0 && CHECK_PTS_EQUAL(p, last))
             continue;
-        xp = x;
-        yp = y;
+        last = p;
 
         //ABELL - This is dumb.  We have the indices.  Use them.
         // skip seed triangle points
-        if (check_pts_equal(x, y, i0x, i0y) ||
-            check_pts_equal(x, y, i1x, i1y) ||
-            check_pts_equal(x, y, i2x, i2y)) continue;
+        if (CHECK_PTS_EQUAL(p, i0p) ||
+            CHECK_PTS_EQUAL(p, i1p) ||
+            CHECK_PTS_EQUAL(p, i2p)) continue;
 
         // find a visible edge on the convex hull using edge hash
         std::size_t start = 0;
 
-        size_t key = hash_key(x, y);
+        size_t key = hash_key(p);
         for (size_t j = 0; j < m_hash_size; j++) {
             start = m_hash[fast_mod(key + j, m_hash_size)];
 
@@ -424,8 +490,7 @@ DELAUNATOR_CLASS::Delaunator(std::vector<dfloat> const& in_coords)
                 e = INVALID_INDEX;
                 break;
             }
-            if (counterclockwise(x, y, coords[2 * e], coords[2 * e + 1],
-                coords[2 * q], coords[2 * q + 1]))
+            if (COUNTERCLOCKWISE(p, m_points[e], m_points[q]))
                 break;
             e = q;
             if (e == start) {
@@ -458,8 +523,7 @@ DELAUNATOR_CLASS::Delaunator(std::vector<dfloat> const& in_coords)
         while (true)
         {
             q = hull_next[next];
-            if (!counterclockwise(x, y, coords[2 * next], coords[2 * next + 1],
-                coords[2 * q], coords[2 * q + 1]))
+            if (!COUNTERCLOCKWISE(p, m_points[next], m_points[q]))
                 break;
             t = add_triangle(next, i, q,
                 hull_tri[i], INVALID_INDEX, hull_tri[next]);
@@ -474,8 +538,7 @@ DELAUNATOR_CLASS::Delaunator(std::vector<dfloat> const& in_coords)
             while (true)
             {
                 q = hull_prev[e];
-                if (!counterclockwise(x, y, coords[2 * q], coords[2 * q + 1],
-                    coords[2 * e], coords[2 * e + 1]))
+                if (!COUNTERCLOCKWISE(p, m_points[q], m_points[e]))
                     break;
                 t = add_triangle(q, i, e,
                     INVALID_INDEX, hull_tri[e], hull_tri[q]);
@@ -494,8 +557,8 @@ DELAUNATOR_CLASS::Delaunator(std::vector<dfloat> const& in_coords)
         hull_next[e] = i;
         hull_next[i] = next;
 
-        m_hash[hash_key(x, y)] = i;
-        m_hash[hash_key(coords[2 * e], coords[2 * e + 1])] = e;
+        m_hash[hash_key(p)] = i;
+        m_hash[hash_key(m_points[e])] = e;
     }
 }
 
@@ -505,8 +568,11 @@ dfloat DELAUNATOR_CLASS::get_hull_area() {
     size_t e = hull_start;
     size_t cnt = 1;
     do {
-        hull_area.push_back((coords[2 * e] - coords[2 * hull_prev[e]]) *
-            (coords[2 * e + 1] + coords[2 * hull_prev[e] + 1]));
+        const point_type& curr = m_points[e];
+        const point_type& prev = m_points[hull_prev[e]];
+        hull_area.push_back((curr.x() - prev.x()) *
+                            (curr.y() + prev.y()));
+
         cnt++;
         e = hull_next[e];
     } while (e != hull_start);
@@ -518,12 +584,17 @@ dfloat DELAUNATOR_CLASS::get_triangle_area() {
     std::vector<dfloat> vals;
     for (size_t i = 0; i < triangles.size(); i += 3)
     {
-        const dfloat ax = coords[2 * triangles[i]];
-        const dfloat ay = coords[2 * triangles[i] + 1];
-        const dfloat bx = coords[2 * triangles[i + 1]];
-        const dfloat by = coords[2 * triangles[i + 1] + 1];
-        const dfloat cx = coords[2 * triangles[i + 2]];
-        const dfloat cy = coords[2 * triangles[i + 2] + 1];
+        const point_type& a = m_points[triangles[i]];
+        const point_type& b = m_points[triangles[i + 1]];
+        const point_type& c = m_points[triangles[i + 2]];
+
+        const dfloat ax = a.x();
+        const dfloat ay = a.y();
+        const dfloat bx = b.x();
+        const dfloat by = b.y();
+        const dfloat cx = c.x();
+        const dfloat cy = c.y();
+
         dfloat val = std::fabs((by - ay) * (cx - bx) - (bx - ax) * (cy - by));
         vals.push_back(val);
     }
@@ -578,15 +649,10 @@ std::size_t DELAUNATOR_CLASS::legalize(std::size_t a) {
         const std::size_t pl = triangles[al];
         const std::size_t p1 = triangles[bl];
 
-        const bool illegal = in_circle(
-            coords[2 * p0],
-            coords[2 * p0 + 1],
-            coords[2 * pr],
-            coords[2 * pr + 1],
-            coords[2 * pl],
-            coords[2 * pl + 1],
-            coords[2 * p1],
-            coords[2 * p1 + 1]);
+        const bool illegal = IN_CIRCLE(m_points[p0],
+                                       m_points[pr],
+                                       m_points[pl],
+                                       m_points[p1]);
 
         if (illegal) {
             triangles[a] = p1;
@@ -632,7 +698,9 @@ std::size_t DELAUNATOR_CLASS::legalize(std::size_t a) {
 }
 
 DELAUNATOR_MTEMPLATE
-std::size_t DELAUNATOR_CLASS::hash_key(const dfloat x, const dfloat y) const {
+std::size_t DELAUNATOR_CLASS::hash_key(const point_type& p) const {
+    const dfloat x = p.x();
+    const dfloat y = p.y();
     const dfloat dx = x - m_center.x();
     const dfloat dy = y - m_center.y();
     return fast_mod(
@@ -681,3 +749,9 @@ void DELAUNATOR_CLASS::link(const std::size_t a, const std::size_t b) {
 }
 
 } //namespace delaunator
+
+#undef CIRCUMRADIUS
+#undef COUNTERCLOCKWISE
+#undef CIRCUMCENTER
+#undef IN_CIRCLE
+#undef CHECK_PTS_EQUAL

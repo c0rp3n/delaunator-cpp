@@ -2,7 +2,7 @@
 
 #include <cmath>
 
-#include "delaunator-header-only.hpp"
+#include "delaunator.hpp"
 
 using namespace std;
 
@@ -28,8 +28,8 @@ std::ostream& operator<<(std::ostream& out, const Point2D& p)
 
 Point2D rotate(Point2D const& p_in, dfloat const& angle_deg)
 {
-    const dfloat pi        = 3.14159265358979323846;
-    const dfloat angle_rad = angle_deg * pi / 180.0;
+    const dfloat pi        = static_cast<dfloat>(3.14159265358979323846);
+    const dfloat angle_rad = angle_deg * pi / static_cast<dfloat>(180.0);
     const dfloat s         = sin(angle_rad);
     const dfloat c         = cos(angle_rad);
     Point2D p;
@@ -52,7 +52,7 @@ dfloat distance(Point2D const& p1, Point2D const& p2)
 
 bool approx(dfloat v1, dfloat v2)
 {
-    const dfloat eps = 0.01;
+    const dfloat eps = static_cast<dfloat>(0.01);
     return fabs(v1 - v2) < eps;
 }
 
@@ -64,7 +64,9 @@ void testRotation(dfloat angle)
     // Generate rotated point grid of 1-by-1 squares.
     for (size_t x = 0; x < grid_size; ++x) {
         for (size_t y = 0; y < grid_size; ++y) {
-            Point2D p = rotate(Point2D(x, y), angle);
+            Point2D p = rotate(Point2D(static_cast<dfloat>(x),
+                                       static_cast<dfloat>(y)),
+                                       angle);
             points.push_back(p.x);
             points.push_back(p.y);
         }
@@ -100,22 +102,22 @@ void testRotation(dfloat angle)
         dfloat len_3 = distance(p3, p1);
         dfloat area  = fabs((p1.x * (p2.y - p3.y) +
                              p2.x * (p3.y - p1.y) +
-                             p3.x * (p1.y - p2.y)) / 2.0);
+                             p3.x * (p1.y - p2.y)) / static_cast<dfloat>(2.0));
 
         // Check edge lengths according to (1).
-        if (approx(len_1, sqrt(2.0)))
+        if (approx(len_1, sqrt(static_cast<dfloat>(2.0))))
         {
             EXPECT_TRUE(approx(len_2, 1.0) && approx(len_3, 1.0)) <<
                 "Bad triangle angle/lengths = " << angle << "/" <<
                 len_1 << " " << len_2 << " " << len_3;
         }
-        else if (approx(len_2, sqrt(2.0)))
+        else if (approx(len_2, sqrt(static_cast<dfloat>(2.0))))
         {
             EXPECT_TRUE(approx(len_1, 1.0) && approx(len_3, 1.0)) <<
                 "Bad triangle angle/lengths = " << angle << "/" <<
                 len_1 << " " << len_2 << " " << len_3;
         }
-        else if (approx(len_3, sqrt(2.0)))
+        else if (approx(len_3, sqrt(static_cast<dfloat>(2.0))))
         {
             EXPECT_TRUE(approx(len_1, 1.0) && approx(len_2, 1.0)) <<
                 "Bad triangle angle/lengths = " << angle << "/" <<
@@ -132,7 +134,7 @@ void testRotation(dfloat angle)
 
 TEST(Delaunator, issue_8)
 {
-    for (dfloat angle = 0; angle < 360; angle += .1)
+    for (dfloat angle = 0; angle < 360; angle += static_cast<dfloat>(.1))
         testRotation(angle);
 }
 

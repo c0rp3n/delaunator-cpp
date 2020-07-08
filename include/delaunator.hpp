@@ -14,6 +14,12 @@
 #include <vector>
 #include <ostream>
 
+#ifndef DELAUNATOR_CONFIGURABLE
+#   define DELAUNATOR_CLASS Delaunator
+#else
+#   define DELAUNATOR_CLASS Delaunator<Config>
+#endif
+
 namespace delaunator {
 
 constexpr std::size_t INVALID_INDEX =
@@ -97,7 +103,13 @@ public:
     using point_type = typename Config::point_type;
     using const_iterator = point_type const *;
 
-    Points(const std::vector<dfloat>& coords) : m_coords(coords)
+#   ifndef DELAUNATOR_HAS_CONCEPTS
+    template <class Array>
+#   else
+    template <class Array>
+    requires Container<Array, dfloat>
+#   endif
+    Points(const Array& coords) : m_coords(coords)
     {}
 
     const point_type& operator[](size_t offset)
@@ -124,15 +136,13 @@ class Delaunator {
 public:
     using point_type = typename Config::point_type;
 
-    std::vector<dfloat> const& coords;
 #ifdef DELAUNATOR_CONFIGURABLE
     Points<Config> m_points;
 #else
     Points m_points;
 #endif
 
-    // 'triangles' stores the indices to the 'X's of the input
-    // 'coords'.
+    // 'triangles' stores the indices to the 'X's of the input 'coords'.
     std::vector<std::size_t> triangles;
 
     // 'halfedges' store indices into 'triangles'.  If halfedges[X] = Y,
@@ -150,7 +160,12 @@ public:
     std::vector<std::size_t> hull_tri;
     std::size_t hull_start;
 
-    //INLINE Delaunator(std::vector<point_type> const& in_coords);
+#   ifndef DELAUNATOR_HAS_CONCEPTS
+    template<class Array>
+#   else
+    template<class Array> requires Container<Array, point_type>
+#   endif
+    inline Delaunator(Array const& in_coords);
     INLINE Delaunator(std::vector<dfloat> const& in_coords);
     INLINE dfloat get_hull_area();
     INLINE dfloat get_triangle_area();
@@ -161,8 +176,9 @@ private:
     std::size_t m_hash_size;
     std::vector<std::size_t> m_edge_stack;
 
+    INLINE void triangulate();
     INLINE std::size_t legalize(std::size_t a);
-    INLINE std::size_t hash_key(dfloat x, dfloat y) const;
+    INLINE std::size_t hash_key(const point_type& p) const;
     INLINE std::size_t add_triangle(
         std::size_t i0,
         std::size_t i1,
@@ -205,6 +221,18 @@ dfloat delaunator::DefaultPointConfig::get_dist2(const point_type& p0, const poi
 
 bool delaunator::DefaultPointConfig::get_equal(const point_type& p0, const point_type& p1, dfloat span) {
     return point_type::equal(p0, p1, span);
+}
+
+DELAUNATOR_MTEMPLATE
+#ifndef DELAUNATOR_HAS_CONCEPTS
+template<class Array>
+#else
+template<class Array> requires Container<Array, point_type>
+#endif
+delaunator::DELAUNATOR_CLASS::Delaunator(Array const& in_coords)
+    : m_points(in_coords)
+{
+    this->triangulate();
 }
 
 #ifdef DELAUNATOR_HEADER_ONLY
