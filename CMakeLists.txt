@@ -22,8 +22,14 @@ configure_file(
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${D_BIN_DIR})
 
-add_library(delaunator include/delaunator.cpp)
-d_target_compile_settings(delaunator)
+if (DELAUNATOR_SINGLE_HEADER)
+    add_library(delaunator INTERFACE)
+    target_include_directories(delaunator INTERFACE include/)
+else()
+    add_library(delaunator include/delaunator.cpp)
+    target_include_directories(delaunator PUBLIC include/)
+    d_target_compile_settings(delaunator)
+endif()
 
 add_subdirectory(test)
 
