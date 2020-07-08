@@ -22,7 +22,7 @@ configure_file(
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${D_BIN_DIR})
 
-if (DELAUNATOR_SINGLE_HEADER)
+if (DELAUNATOR_HEADER_ONLY)
     add_library(delaunator INTERFACE)
     target_include_directories(delaunator INTERFACE include/)
 else()

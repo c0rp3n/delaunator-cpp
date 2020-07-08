@@ -1,18 +1,14 @@
 #pragma once
 
 #include "delaunator_config.hpp"
+#include "delaunator_base_types.hpp"
+#include "delaunator_concepts.hpp"
 
 #ifdef DELAUNATOR_HEADER_ONLY
-#define INLINE inline
+#   define INLINE inline
 #else
-#define INLINE
-#endif
-
-#ifdef DELAUNATOR_SINGLE_PRECISION
-typedef float dfloat;
-#else
-typedef double dfloat;
-#endif
+#   define INLINE
+#endif // DELAUNATOR_HEADER_ONLY
 
 #include <limits>
 #include <vector>
@@ -70,31 +66,50 @@ private:
     dfloat m_y;
 };
 
+class DefaultPointConfig
+{
+public:
+    using point_type = Point;
+
+    static inline dfloat get_x(const point_type& p);
+    static inline dfloat get_y(const point_type& p);
+    static inline dfloat get_magnitude2(const point_type& p);
+    static inline dfloat get_determinant(const Point& p0, const Point& p1);
+    static inline point_type get_vector(const Point& p0, const Point& p1);
+    static inline dfloat get_dist2(const Point& p0, const Point& p1);
+    static inline bool get_equal(const Point& p0, const Point& p1, dfloat span);
+};
+
+#ifndef DELAUNATOR_CONFIGURABLE
+    typedef DefaultPointConfig Config;
+#endif
+
 inline std::ostream& operator<<(std::ostream& out, const Point& p)
 {
     out << p.x() << "/" << p.y();
     return out;
 }
 
-
+DELAUNATOR_TEMPLATE
 class Points
 {
 public:
-    using const_iterator = Point const *;
+    using point_type = typename Config::point_type;
+    using const_iterator = point_type const *;
 
     Points(const std::vector<dfloat>& coords) : m_coords(coords)
     {}
 
-    const Point& operator[](size_t offset)
+    const point_type& operator[](size_t offset)
     {
-        return reinterpret_cast<const Point&>(
+        return reinterpret_cast<const point_type&>(
             *(m_coords.data() + (offset * 2)));
     };
 
     Points::const_iterator begin() const
-        { return reinterpret_cast<const Point *>(m_coords.data()); }
+        { return reinterpret_cast<const point_type *>(m_coords.data()); }
     Points::const_iterator end() const
-        { return reinterpret_cast<const Point *>(
+        { return reinterpret_cast<const point_type *>(
             m_coords.data() + m_coords.size()); }
     size_t size() const
         { return m_coords.size() / 2; }
@@ -103,11 +118,18 @@ private:
     const std::vector<dfloat>& m_coords;
 };
 
+DELAUNATOR_TEMPLATE
 class Delaunator {
 
 public:
+    using point_type = typename Config::point_type;
+
     std::vector<dfloat> const& coords;
+#ifdef DELAUNATOR_CONFIGURABLE
+    Points<Config> m_points;
+#else
     Points m_points;
+#endif
 
     // 'triangles' stores the indices to the 'X's of the input
     // 'coords'.
@@ -128,13 +150,14 @@ public:
     std::vector<std::size_t> hull_tri;
     std::size_t hull_start;
 
+    //INLINE Delaunator(std::vector<point_type> const& in_coords);
     INLINE Delaunator(std::vector<dfloat> const& in_coords);
     INLINE dfloat get_hull_area();
     INLINE dfloat get_triangle_area();
 
 private:
     std::vector<std::size_t> m_hash;
-    Point m_center;
+    point_type m_center;
     std::size_t m_hash_size;
     std::vector<std::size_t> m_edge_stack;
 
@@ -151,5 +174,41 @@ private:
 };
 
 } //namespace delaunator
+
+dfloat delaunator::DefaultPointConfig::get_x(const point_type& p)
+{
+    return p.x();
+}
+
+dfloat delaunator::DefaultPointConfig::get_y(const point_type& p)
+{
+    return p.x();
+}
+
+dfloat delaunator::DefaultPointConfig::get_magnitude2(const point_type& p)
+{
+    return p.magnitude2();
+}
+
+dfloat delaunator::DefaultPointConfig::get_determinant(const point_type& p0, const point_type& p1){
+    return point_type::determinant(p0, p1);
+}
+
+delaunator::DefaultPointConfig::point_type
+    delaunator::DefaultPointConfig::get_vector(const point_type& p0, const point_type& p1) {
+    return point_type::vector(p0, p1);
+}
+
+dfloat delaunator::DefaultPointConfig::get_dist2(const point_type& p0, const point_type& p1) {
+    return point_type::dist2(p0, p1);
+}
+
+bool delaunator::DefaultPointConfig::get_equal(const point_type& p0, const point_type& p1, dfloat span) {
+    return point_type::equal(p0, p1, span);
+}
+
+#ifdef DELAUNATOR_HEADER_ONLY
+#   include "delaunator.cpp"
+#endif
 
 #undef INLINE
