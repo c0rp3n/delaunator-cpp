@@ -1,3 +1,5 @@
 #pragma once
 
+#cmakedefine DELAUNATOR_HEADER_ONLY
+
 #cmakedefine DELAUNATOR_SINGLE_PRECISION
