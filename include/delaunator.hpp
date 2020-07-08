@@ -198,7 +198,7 @@ dfloat delaunator::DefaultPointConfig::get_x(const point_type& p)
 
 dfloat delaunator::DefaultPointConfig::get_y(const point_type& p)
 {
-    return p.x();
+    return p.y();
 }
 
 dfloat delaunator::DefaultPointConfig::get_magnitude2(const point_type& p)
