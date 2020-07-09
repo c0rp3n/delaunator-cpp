@@ -343,7 +343,7 @@ void DELAUNATOR_CLASS::triangulate()
     for (size_t i = 0; i < m_points.size(); ++i)
     {
         const point_type& p = m_points[i];
-        const dfloat d = point_type::dist2(center, p);
+        const dfloat d = Config::get_dist2(center, p);
         if (d < min_dist) {
             i0 = i;
             min_dist = d;
