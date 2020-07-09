@@ -121,7 +121,7 @@ public:
         { 
             static_assert(std::is_same<typename Array::value_type, point_type>::value,
                           "input point type does not match the configured "
-                          "point type.")
+                          "point type.");
         }
 
     const point_type& operator[](size_t offset)
