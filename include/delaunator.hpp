@@ -103,31 +103,34 @@ public:
     using point_type = typename Config::point_type;
     using const_iterator = point_type const *;
 
+    Points(const std::vector<dfloat>& coords)
+        : m_data(reinterpret_cast<const point_type*>(std::data(coords))),
+          m_size(std::size(coords) >> 1)
+    {}
+
 #   ifndef DELAUNATOR_HAS_CONCEPTS
     template <class Array>
 #   else
-    template <class Array>
-    requires Container<Array, dfloat>
+    template <class Array> requires Container<Array, point_type>
 #   endif
-    Points(const Array& coords) : m_coords(coords)
+    Points(const Array& coords)
+        : m_data(std::data(coords)),
+          m_size(std::size(coords))
     {}
 
     const point_type& operator[](size_t offset)
-    {
-        return reinterpret_cast<const point_type&>(
-            *(m_coords.data() + (offset * 2)));
-    };
+        { return *(m_data + offset); };
 
     Points::const_iterator begin() const
-        { return reinterpret_cast<const point_type *>(m_coords.data()); }
+        { return m_data; }
     Points::const_iterator end() const
-        { return reinterpret_cast<const point_type *>(
-            m_coords.data() + m_coords.size()); }
+        { return m_data + m_size; }
     size_t size() const
-        { return m_coords.size() / 2; }
+        { return m_size; }
 
 private:
-    const std::vector<dfloat>& m_coords;
+    const point_type* m_data;
+    const size_t m_size;
 };
 
 DELAUNATOR_TEMPLATE
