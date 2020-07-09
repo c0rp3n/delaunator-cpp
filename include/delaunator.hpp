@@ -1,6 +1,8 @@
 #pragma once
 
-#include "delaunator_config.hpp"
+#if __has_include("delaunator_config.hpp")
+#   include "delaunator_config.hpp"
+#endif
 #include "delaunator_base_types.hpp"
 #include "delaunator_concepts.hpp"
 
