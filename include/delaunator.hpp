@@ -82,10 +82,10 @@ public:
     static inline dfloat get_x(const point_type& p);
     static inline dfloat get_y(const point_type& p);
     static inline dfloat get_magnitude2(const point_type& p);
-    static inline dfloat get_determinant(const Point& p0, const Point& p1);
-    static inline point_type get_vector(const Point& p0, const Point& p1);
-    static inline dfloat get_dist2(const Point& p0, const Point& p1);
-    static inline bool get_equal(const Point& p0, const Point& p1, dfloat span);
+    static inline dfloat get_determinant(const point_type& p0, const point_type& p1);
+    static inline point_type get_vector(const point_type& p0, const point_type& p1);
+    static inline dfloat get_dist2(const point_type& p0, const point_type& p1);
+    static inline bool get_equal(const point_type& p0, const point_type& p1, dfloat span);
 };
 
 #ifndef DELAUNATOR_CONFIGURABLE
